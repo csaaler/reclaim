@@ -93,47 +93,6 @@ private func scan(
         #expect(!result.root.isUnreadable)
     }
 
-    /// Without Full Disk Access, opening these folders waits on a privacy prompt (app data, media
-    /// library, Photos, TV, network and removable volumes), so each is recorded as unreadable
-    /// without being opened.
-    @Test func privacyPromptedFoldersSkippedWhenRequested() async throws {
-        let fixture = try FixtureHome()
-        let root = fixture.home.path
-        let user = "Users/me"
-        try fixture.file("\(user)/Library/Containers/com.example.app/Data/blob", bytes: 8192)
-        try fixture.file("\(user)/Library/Group Containers/group.com.example/blob", bytes: 8192)
-        try fixture.file("\(user)/Library/Containers/.loose-file", bytes: 4096)
-        try fixture.file("\(user)/Music/Music/Media.localized/song", bytes: 8192)
-        try fixture.file("\(user)/Pictures/Photos Library.photoslibrary/database/db", bytes: 8192)
-        try fixture.file("\(user)/Movies/TV/Media.localized/show", bytes: 8192)
-        try fixture.file("Volumes/Share/file", bytes: 8192)
-        try fixture.file("\(user)/Music/Logic/project", bytes: 8192)
-        try fixture.file("\(user)/Pictures/holiday.jpg", bytes: 8192)
-        try fixture.file("\(user)/Library/Caches/kept", bytes: 8192)
-
-        let result = try await DiskScanner(root: root, skipsPrivacyPromptedFolders: true).scan { _ in }
-
-        let skipped = [
-            "\(user)/Library/Containers/com.example.app", "\(user)/Library/Group Containers/group.com.example",
-            "\(user)/Music/Music", "\(user)/Pictures/Photos Library.photoslibrary", "\(user)/Movies/TV", "Volumes",
-        ].map { root + "/" + $0 }
-        #expect(result.unreadablePaths.sorted() == skipped.sorted())
-        for path in skipped {
-            let summary = try #require(result.summary(at: path))
-            #expect(summary.isUnreadable)
-            #expect(summary.allocatedBytes == 0)
-            #expect(summary.children.isEmpty)
-        }
-        #expect(result.summary(at: root + "/\(user)/Library/Containers")?.fileCount == 1)
-        #expect(result.summary(at: root + "/\(user)/Music/Logic")?.fileCount == 1)
-        #expect(result.summary(at: root + "/\(user)/Pictures")?.fileCount == 1)
-        #expect(result.summary(at: root + "/\(user)/Library/Caches")?.fileCount == 1)
-
-        let full = try await scan(root)
-        #expect(full.unreadablePaths.isEmpty)
-        #expect(full.summary(at: skipped[0])?.fileCount == 1)
-    }
-
     @Test func childrenSortedAndAggregated() async throws {
         let fixture = try FixtureHome()
         let root = fixture.home.path
@@ -256,16 +215,5 @@ private func scan(
         let scanner = DiskScanner.dataVolume
         #expect(scanner.root == "/System/Volumes/Data")
         #expect(scanner.displayPrefixToStrip == "/System/Volumes/Data")
-        #expect(!scanner.skipsPrivacyPromptedFolders)
-    }
-
-    @Test func skippingCopyKeepsOtherSettings() {
-        let scanner = DiskScanner(root: "/tmp/x", displayPrefixToStrip: "/tmp", largeFileThreshold: 42, maxConcurrency: 3)
-        let copy = scanner.skippingPrivacyPromptedFolders()
-        #expect(copy.skipsPrivacyPromptedFolders)
-        #expect(copy.root == scanner.root)
-        #expect(copy.displayPrefixToStrip == scanner.displayPrefixToStrip)
-        #expect(copy.largeFileThreshold == scanner.largeFileThreshold)
-        #expect(copy.maxConcurrency == scanner.maxConcurrency)
     }
 }

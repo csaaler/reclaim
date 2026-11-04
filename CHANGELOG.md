@@ -19,7 +19,7 @@ Initial public release. Source only: build it with `scripts/build-app.sh`. There
 - Inspectors for Google Chrome profiles and caches, Docker, Xcode and simulators, Android SDK and emulators, JetBrains IDEs, JavaScript package managers and Homebrew, Gradle, Maven, Python, Rust and Go caches, project build folders, and updater leftovers.
 - Cleanup list, review screen with risk levels (🟢 🟡 🔴) and per-item acknowledgement for 🔴, and a cleanup engine that re-validates every path immediately before acting, moves 🔴 items to the Trash, refuses protected paths and other volumes, and only runs tool commands and JSON edits that are on the `ToolPolicy` allow-list.
 - Cleanup log at `~/Library/Application Support/Reclaim/cleanup-log.jsonl`.
-- Full Disk Access banner, and a scan that skips privacy-prompted folders when access is missing.
+- A start screen: no scan on launch, Full Disk Access required, and an explicit Start Scan button.
 
 [Unreleased]: https://github.com/csaaler/reclaim/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/csaaler/reclaim/releases/tag/v0.1.0

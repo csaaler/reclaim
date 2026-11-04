@@ -44,15 +44,13 @@ The script signs with the first "Apple Development" identity in your keychain, o
 
 ## Full Disk Access
 
-Reclaim is not sandboxed. It works without Full Disk Access, but then it cannot read some folders and marks them as unreadable. macOS has no permission prompt for Full Disk Access; you have to turn it on yourself:
+Reclaim is not sandboxed and needs Full Disk Access to scan. Without it, macOS would ask for each protected folder the scan reaches (your media library, network volumes, other apps' data) one prompt at a time. macOS has no permission prompt for Full Disk Access itself; you turn it on yourself:
 
 1. Open System Settings > Privacy & Security > Full Disk Access.
 2. Click +, add `build/Reclaim.app`, and switch it on.
-3. Quit and reopen Reclaim, for example with the banner's "Quit & Reopen" button.
+3. Quit and reopen Reclaim, for example with the start screen's "Quit & Reopen" button.
 
-While access is missing, a banner at the top of the main window links to System Settings. It does not block the app.
-
-Without Full Disk Access, the scan does not open folders that macOS guards with their own privacy prompt, so it never stalls waiting for one: each app's folder in `~/Library/Containers` and `~/Library/Group Containers`, the Music, TV and Photos libraries, and `/Volumes`. They are listed as unreadable, and their size ends up in "Not explained". Folders such as Mail and Safari data are also unreadable without access.
+Reclaim does not scan on launch. Its start screen walks you through Full Disk Access, and the Start Scan button stays disabled until access is on. Nothing on disk is read before you press it. If access is turned off later, Rescan is refused and the start screen comes back. History stays available either way.
 
 If you rebuild an ad-hoc signed app, macOS treats it as a new app. Remove the old Reclaim entry from the Full Disk Access list with the minus button, add the new build, and reopen it. See [docs/faq.md](docs/faq.md) for this and other common problems.
 

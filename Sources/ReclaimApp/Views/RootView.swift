@@ -21,7 +21,8 @@ struct RootView: View {
     let diskTotalsUnavailable: Bool
 
     @State private var selection: SidebarItem? = .byApp
-    /// Owned by the app so its probes run once, not on every view update. Nil hides the banner.
+    /// Owned by the app so its probes run once, not on every view update. Nil in previews, which
+    /// then behave as if access were granted.
     let fullDiskAccess: FullDiskAccessMonitor?
 
     init(
@@ -67,18 +68,6 @@ struct RootView: View {
         } detail: {
             detail
                 .navigationTitle(selection?.rawValue ?? "Reclaim")
-                .safeAreaInset(edge: .top, spacing: 0) {
-                    if let fullDiskAccess, let mode = fullDiskAccess.bannerMode {
-                        FullDiskAccessBanner(
-                            mode: mode,
-                            isAdHocSigned: fullDiskAccess.isAdHocSigned,
-                            isRelaunching: fullDiskAccess.isRelaunching,
-                            relaunchError: fullDiskAccess.relaunchError,
-                            onOpenSettings: { FullDiskAccess.openSettings() },
-                            onQuitAndReopen: { fullDiskAccess.quitAndReopen() },
-                            onDismiss: { fullDiskAccess.isDismissed = true })
-                    }
-                }
                 .safeAreaInset(edge: .bottom, spacing: 0) {
                     if let snapshot, selection == .byApp || selection == .byCategory {
                         ReconciliationFooter(snapshot: snapshot, diskTotalsUnavailable: diskTotalsUnavailable)
@@ -108,10 +97,11 @@ struct RootView: View {
                 .labelStyle(.titleAndIcon)
                 .help("Review the cleanup list")
                 Button(action: onRescan) {
-                    Label("Rescan", systemImage: "arrow.clockwise")
+                    Label(snapshot == nil ? "Scan" : "Rescan", systemImage: "arrow.clockwise")
                 }
                 .keyboardShortcut("r", modifiers: .command)
-                .help("Rescan (Command-R)")
+                .disabled(!hasFullDiskAccess || phase != nil)
+                .help(hasFullDiskAccess ? "Scan again (Command-R)" : "Turn on Full Disk Access to scan")
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
@@ -143,20 +133,20 @@ struct RootView: View {
                 Text(phase).foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else if let errorMessage {
-            ContentUnavailableView {
-                Label("No overview", systemImage: "exclamationmark.triangle")
-            } description: {
-                Text(errorMessage)
-            } actions: {
-                Button("Retry", action: onRescan)
-                    .keyboardShortcut(.defaultAction)
-            }
         } else {
-            ContentUnavailableView("No scan yet", systemImage: "internaldrive",
-                                   description: Text("Press Rescan to measure your disk."))
+            StartScanView(
+                isGranted: hasFullDiskAccess,
+                isAdHocSigned: fullDiskAccess?.isAdHocSigned ?? false,
+                isRelaunching: fullDiskAccess?.isRelaunching ?? false,
+                relaunchError: fullDiskAccess?.relaunchError,
+                errorMessage: errorMessage,
+                onOpenSettings: { FullDiskAccess.openSettings() },
+                onQuitAndReopen: { fullDiskAccess?.quitAndReopen() },
+                onStart: onRescan)
         }
     }
+
+    private var hasFullDiskAccess: Bool { fullDiskAccess?.isGranted ?? true }
 }
 
 extension RootView {
