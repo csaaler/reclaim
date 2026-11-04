@@ -8,7 +8,7 @@ A checklist for the maintainer. Apply it when the repository is created and chec
 - [ ] Push only `main`. No worktree branches, no work-in-progress refs, no tags you do not mean to publish. Check with `git for-each-ref` before pushing.
 - [ ] Publish only with `git push`, or from `git archive HEAD`. Never copy the working folder, which holds ignored local folders such as `build/` and `.build/`.
 - [ ] Push to the private repository and get one **green CI run** before making it public. CI uses Xcode 16.4 (Swift 6.1), which has not been run against this code yet. If it fails, fix the code or select a newer Xcode that is on the `macos-15` image, and update the Xcode version in README.md and CONTRIBUTING.md to match.
-- [ ] After that first green run, make the warnings-as-errors step in `.github/workflows/ci.yml` blocking: delete `continue-on-error: true` and its comment, and use `swift build --build-tests -Xswiftc -warnings-as-errors`. Then change the tag on CONTRIBUTING rule A2 ("no new compiler warnings") to `[CI]`.
+- [x] After that first green run, make the warnings-as-errors step in `.github/workflows/ci.yml` blocking: delete `continue-on-error: true` and its comment, and use `swift build --build-tests -Xswiftc -warnings-as-errors`. Then change the tag on CONTRIBUTING rule A2 ("no new compiler warnings") to `[CI]`.
 - [ ] Scan the tree for secrets and personal data once (`scripts/check-privacy.sh`, plus a secrets scanner such as gitleaks).
 - [ ] The maintainer account uses two-factor authentication, ideally with a passkey or hardware key.
 

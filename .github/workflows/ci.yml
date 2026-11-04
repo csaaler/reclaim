@@ -35,10 +35,8 @@ jobs:
       - name: Test
         run: swift test
 
-      # Reports compiler warnings without failing the job.
       - name: Build with warnings as errors
-        continue-on-error: true
-        run: swift build -Xswiftc -warnings-as-errors
+        run: swift build --build-tests -Xswiftc -warnings-as-errors
 
       - name: Check contributor templates compile
         run: scripts/check-templates.sh
