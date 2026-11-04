@@ -135,7 +135,8 @@ Write the test first, watch it fail, then make it pass. Behaviour changes withou
 
 - Short, imperative commit messages with a Conventional Commits prefix: `feat: add Zed definition`, `fix: skip Docker prune when the daemon is down`, `docs: ...`, `test: ...`.
 - Fill in the pull request template, including the evidence table and the safety checklist.
-- Pull requests are squash-merged.
+- Pull requests are squash-merged. The pull request title becomes the commit on `main` and the line in the release notes, so write it for a user and use the same prefix: `feat: add Zed definition`, not `update files`.
+- Do not change version numbers or `CHANGELOG.md`. Versions come from release tags, and release notes are generated from pull request titles; see [docs/release.md](docs/release.md).
 
 ## Reporting problems
 

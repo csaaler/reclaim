@@ -2,7 +2,7 @@
 
 ## Full Disk Access
 
-### I granted Full Disk Access, but Reclaim still shows the banner
+### I granted Full Disk Access, but Start Scan stays disabled
 
 macOS ties the Full Disk Access grant to the app's code signature. A build signed ad-hoc (the default when you have no Apple Development certificate) gets a new signature every time you rebuild, so macOS treats it as a different app, even though the old entry in the list still looks switched on.
 
@@ -16,26 +16,17 @@ To stop this from happening after every rebuild, sign with a stable identity. `s
 
 ### Why doesn't Reclaim ask for Full Disk Access?
 
-macOS has no permission prompt for Full Disk Access. An app can only point you to the setting, which is what the banner's button does. You have to add and enable the app yourself.
+macOS has no permission prompt for Full Disk Access. An app can only point you to the setting, which is what the start screen's Open System Settings button does. You have to add and enable the app yourself.
 
-### What is skipped without Full Disk Access?
+### Why can't I scan without Full Disk Access?
 
-Reclaim works without it, but cannot see everything:
-
-- To avoid stalling on privacy prompts, the scan does not open each app's folder in `~/Library/Containers` and `~/Library/Group Containers`, the Music, TV and Photos libraries, or `/Volumes`. They are counted as unreadable.
-- Other folders that macOS reserves for apps with Full Disk Access, such as Mail and Safari data, cannot be read either.
-
-Everything it cannot read is listed as unreadable, and its size ends up in "Not explained". Nothing is lost; the numbers are just less complete.
-
-### macOS asked whether Reclaim may access a folder
-
-Without Full Disk Access, macOS may still ask once for some folders that the scan does not skip, for example Desktop, Documents or Downloads. Allowing it includes the folder in the scan. Declining marks it as unreadable. Reclaim only reads names, sizes and dates; it never reads file contents for the scan. Granting Full Disk Access avoids these prompts.
+Without it, macOS guards many folders with their own privacy prompts: your media library, network volumes, other apps' containers, Desktop, Documents and more. A scan would trigger them one after another, and could wait on a prompt that never appears. With Full Disk Access none of these prompts are shown, so Reclaim requires it before the first scan and does not read the disk until you press Start Scan. Reclaim only reads names, sizes and dates; it never reads file contents for the scan.
 
 ## Understanding the numbers
 
 ### What is "Unreadable"?
 
-The number of folders the scan could not open. Their size is unknown, so it is part of "Not explained". Without Full Disk Access the title says "(grant Full Disk Access)". With Full Disk Access, the remaining unreadable folders are ones macOS protects even from apps with that permission.
+The number of folders the scan could not open. Their size is unknown, so it is part of "Not explained". These are folders macOS protects even from apps with Full Disk Access, such as parts of `/private/var`.
 
 ### What is "Not explained"?
 

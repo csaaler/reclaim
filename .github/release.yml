@@ -1,0 +1,11 @@
+# Groups pull requests in the notes that `gh release create --generate-notes` writes.
+changelog:
+  categories:
+    - title: New features
+      labels: [enhancement]
+    - title: Fixes
+      labels: [bug]
+    - title: Documentation
+      labels: [documentation]
+    - title: Other changes
+      labels: ["*"]

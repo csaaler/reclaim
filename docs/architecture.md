@@ -40,7 +40,7 @@ Reclaim is a SwiftPM package with four library targets and one app target. It ha
 | `StorageDefinitions` | `Apps/` and root | One file per app under `Apps/`, the Electron cache helper, `allDefinitions`, and the `DefinitionValidator`. |
 | `StorageInspectors` | one folder per inspector | Chrome, Docker, Xcode, Android, JetBrains, JavaScript caches, native toolchain caches, project builds, updater leftovers, and `allInspectors`. |
 | `StorageTestKit` | | `FixtureHome`, `FakeToolRunner`, `FakeAppChecker`, `LogicalSizer`. Used by tests only. |
-| `ReclaimApp` | | The SwiftUI app: views, the Full Disk Access banner, the cleanup list and review screen, and `ScanCoordinator`. |
+| `ReclaimApp` | | The SwiftUI app: views, the start screen (Full Disk Access, then Start Scan), the cleanup list and review screen, and `ScanCoordinator`. |
 
 `StorageDefinitions` and `StorageInspectors` depend only on `StorageCore`, never on each other or on the app. That keeps plugins small and testable on their own.
 
@@ -48,7 +48,7 @@ The system boundaries are protocols. Production code uses the real implementatio
 
 ## Flow: scan, attribute, snapshot, cleanup
 
-1. **Scan.** `DiskScanner` walks the Data volume (`/System/Volumes/Data`, shown as `/Users/...` and so on). It sums allocated size (what the disk actually uses, not the logical size), counts hard-linked files once, never follows symlinks and never crosses into another volume. It keeps directory totals and files of 100 MB or more. It is read-only. Without Full Disk Access it does not open folders that macOS guards with a privacy prompt (app containers and group containers, the Music, TV and Photos libraries, `/Volumes`); they are recorded as unreadable.
+1. **Scan.** `DiskScanner` walks the Data volume (`/System/Volumes/Data`, shown as `/Users/...` and so on). It sums allocated size (what the disk actually uses, not the logical size), counts hard-linked files once, never follows symlinks and never crosses into another volume. It keeps directory totals and files of 100 MB or more. It is read-only. The app only starts a scan when the user presses Start Scan and Full Disk Access is on, so the scan never triggers macOS's per-folder privacy prompts.
 2. **Attribute.** Each location gets an owner and a cleanability. For cleanup routing the most specific source wins: inspector claims, then definitions, then location rules, then generic attribution (matching a folder to an installed app), then "Other". Protected paths are marked protected. Paths claimed by an inspector can only be cleaned through that inspector's plan.
 
    Naming the owner in By App is a separate decision. When a definition and an inspector both describe an app, the definition's name is shown (`Owner.Priority` in `SnapshotBuilder`). This changes only the label, not how the path is cleaned.

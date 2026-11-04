@@ -23,14 +23,13 @@ struct ReclaimApp: App {
                 cleanupCount: cleanupList.candidates.count,
                 cleanupBytes: cleanupList.totalBytes,
                 onOpenCleanup: { openReview() },
-                onRescan: { Task { await coordinator.rescan() } },
+                onRescan: { Task { await coordinator.scan() } },
                 phase: coordinator.isScanning ? coordinator.phase?.title : nil,
                 errorMessage: coordinator.errorMessage,
                 diskTotalsUnavailable: coordinator.diskTotalsUnavailable,
                 fullDiskAccess: fullDiskAccess
             )
             .environment(\.inspectorDirectory, coordinator.inspectorDirectory)
-            .task { await coordinator.start() }
             .task { reloadHistory() }
             // Candidates belong to the snapshot they were picked from.
             .onChange(of: coordinator.generation) { cleanupList.removeAll() }
@@ -73,7 +72,7 @@ struct ReclaimApp: App {
         review = nil
         cleanupList.removeAll()
         reloadHistory()
-        Task { await coordinator.rescan() }
+        Task { await coordinator.scan() }
     }
 
     private func reloadHistory() {

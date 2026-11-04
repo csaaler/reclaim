@@ -18,36 +18,22 @@ public struct DiskScanner: Sendable {
     public let displayPrefixToStrip: String?
     public let largeFileThreshold: Int64
     public let maxConcurrency: Int
-    /// Records folders that macOS guards with a privacy prompt as unreadable without opening
-    /// them: each app's folder in `Library/Containers` and `Library/Group Containers`, the Music,
-    /// TV and Photos libraries, and `/Volumes`. Without Full Disk Access, opening one waits on a
-    /// prompt ("data from other apps", "your media library", …) that may never be answered.
-    public private(set) var skipsPrivacyPromptedFolders: Bool
 
     public init(
         root: String,
         displayPrefixToStrip: String? = nil,
         largeFileThreshold: Int64 = 100 * 1_048_576,
-        maxConcurrency: Int = 8,
-        skipsPrivacyPromptedFolders: Bool = false
+        maxConcurrency: Int = 8
     ) {
         self.root = Self.trimmingTrailingSlash(root)
         self.displayPrefixToStrip = displayPrefixToStrip.map(Self.trimmingTrailingSlash)
         self.largeFileThreshold = largeFileThreshold
         self.maxConcurrency = max(1, maxConcurrency)
-        self.skipsPrivacyPromptedFolders = skipsPrivacyPromptedFolders
     }
 
     /// The Data volume. Display paths are stripped to `/Users/...`, `/Library/...` and so on,
     /// matching the firmlinks the user sees.
     public static let dataVolume = DiskScanner(root: "/System/Volumes/Data", displayPrefixToStrip: "/System/Volumes/Data")
-
-    /// A copy that skips privacy-prompted folders; see `skipsPrivacyPromptedFolders`.
-    public func skippingPrivacyPromptedFolders() -> DiskScanner {
-        var copy = self
-        copy.skipsPrivacyPromptedFolders = true
-        return copy
-    }
 
     /// Progress is reported at most about 4 times per second, plus once when the scan completes.
     /// The callback may run on any thread.
@@ -64,7 +50,6 @@ public struct DiskScanner: Sendable {
             rootDevice: info.st_dev,
             threshold: largeFileThreshold,
             prefix: displayPrefixToStrip,
-            skipsPrivacyPromptedFolders: skipsPrivacyPromptedFolders,
             extraWorkers: maxConcurrency - 1,
             progress: progress
         )
@@ -104,7 +89,6 @@ private final class ScanState: Sendable {
     let rootDevice: Int32
     let threshold: Int64
     let prefix: String?
-    let skipsPrivacyPromptedFolders: Bool
     let progress: @Sendable (ScanProgress) -> Void
 
     private let seenLinked = Mutex<Set<FileID>>([])
@@ -123,14 +107,12 @@ private final class ScanState: Sendable {
         rootDevice: Int32,
         threshold: Int64,
         prefix: String?,
-        skipsPrivacyPromptedFolders: Bool,
         extraWorkers: Int,
         progress: @escaping @Sendable (ScanProgress) -> Void
     ) {
         self.rootDevice = rootDevice
         self.threshold = threshold
         self.prefix = prefix
-        self.skipsPrivacyPromptedFolders = skipsPrivacyPromptedFolders
         self.progress = progress
         self.freeWorkers = Atomic(max(0, extraWorkers))
     }
@@ -146,9 +128,6 @@ private final class ScanState: Sendable {
     func scanDirectory(realPath: String, depth: Int) async -> DirectorySummary? {
         let displayPath = display(realPath)
         if Task.isCancelled { return nil }
-        if skipsPrivacyPromptedFolders && depth > 0 && Self.isPrivacyPrompted(realPath, depth: depth) {
-            return unreadableSummary(displayPath)
-        }
 
         // The root may be given through a symlink (e.g. /tmp); nothing below it is followed.
         let flags = O_RDONLY | O_DIRECTORY | O_CLOEXEC | (depth == 0 ? 0 : O_NOFOLLOW)
@@ -223,22 +202,6 @@ private final class ScanState: Sendable {
             path: displayPath, allocatedBytes: 0, fileCount: 0,
             newestModification: nil, isUnreadable: true, children: []
         )
-    }
-
-    private static func isPrivacyPrompted(_ path: String, depth: Int) -> Bool {
-        let parts = path.split(separator: "/", omittingEmptySubsequences: true)
-        guard let name = parts.last else { return false }
-        if depth == 1 && name == "Volumes" { return true }
-        let parent = (path as NSString).deletingLastPathComponent
-        if parent.hasSuffix("/Library/Containers") || parent.hasSuffix("/Library/Group Containers") { return true }
-        // Libraries directly inside a user's home: /Users/<name>/<Music|Movies|Pictures>/<library>.
-        guard parts.count >= 4, parts[parts.count - 4] == "Users" else { return false }
-        switch parts[parts.count - 2] {
-        case "Music": return name == "Music" || name == "iTunes"
-        case "Movies": return name == "TV"
-        case "Pictures": return name.hasSuffix(".photoslibrary")
-        default: return false
-        }
     }
 
     /// Scans `paths`, handing each to a new task while permits are free and scanning it inline

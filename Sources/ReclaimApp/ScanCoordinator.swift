@@ -36,21 +36,33 @@ final class ScanCoordinator {
     private(set) var inspectorDirectory: InspectorDirectory
 
     private let home: URL
+    /// Whether the app has Full Disk Access right now.
+    private let hasFullDiskAccess: @MainActor () -> Bool
     private var current: Task<Void, Never>?
 
-    init(home: URL = FileManager.default.homeDirectoryForCurrentUser) {
+    /// Nothing is scanned until `scan()` is called.
+    init(home: URL = FileManager.default.homeDirectoryForCurrentUser,
+         hasFullDiskAccess: @escaping @MainActor () -> Bool = { FullDiskAccess.isGranted() }) {
         self.home = home
+        self.hasFullDiskAccess = hasFullDiskAccess
         self.inspectorDirectory = InspectorSetup.current(home: home).directory
     }
 
-    /// Scans once; does nothing when a snapshot exists or a scan is running.
-    func start() async {
-        guard snapshot == nil, current == nil else { return }
-        await launch()
-    }
-
-    /// Cancels a running scan, if any, and starts a new one.
-    func rescan() async {
+    /// Cancels a running scan, if any, and starts a new one. Refuses without Full Disk Access:
+    /// macOS would then ask for each protected folder the scan reaches (media library, network
+    /// volumes, other apps' data), and the scan would wait on every prompt. The previous
+    /// overview is dropped so the start screen explains what to do.
+    func scan() async {
+        guard hasFullDiskAccess() else {
+            current?.cancel()
+            generation += 1
+            snapshot = nil
+            progress = nil
+            isScanning = false
+            phase = nil
+            errorMessage = "Full Disk Access is off. Turn it on, then start the scan."
+            return
+        }
         current?.cancel()
         await launch()
     }
@@ -92,11 +104,8 @@ final class ScanCoordinator {
         let setup = InspectorSetup.current(home: home)
         let inspectors = setup.inspectors
 
-        // Without Full Disk Access, opening app containers or media libraries waits on a privacy prompt.
-        let hasFullDiskAccess = FullDiskAccess.isGranted()
-        let scanner = hasFullDiskAccess ? DiskScanner.dataVolume : DiskScanner.dataVolume.skippingPrivacyPromptedFolders()
         // The scanner calls back on its own threads, throttled to about 4 per second.
-        async let scanResult = scanner.scan { [weak self] update in
+        async let scanResult = DiskScanner.dataVolume.scan { [weak self] update in
             Task { @MainActor in
                 guard let self, self.generation == mine, self.phase == .scanning else { return }
                 self.progress = update
@@ -137,7 +146,7 @@ final class ScanCoordinator {
         let bundleIDs = Dictionary(uniqueKeysWithValues: inspectors.map { ($0.id, $0.bundleIDs) })
         let builder = SnapshotBuilder(
             home: home, index: index, definitions: allDefinitions,
-            protected: ProtectedPaths(home: home), codeRoots: setup.codeRoots, hasFullDiskAccess: hasFullDiskAccess)
+            protected: ProtectedPaths(home: home), codeRoots: setup.codeRoots, hasFullDiskAccess: true)
         let stats = volume.stats ?? VolumeStats(totalBytes: 0, usedBytes: 0, availableBytes: 0, purgeableBytes: 0,
                                                 systemVolumeBytes: 0, localSnapshotCount: 0)
         let built = await Task.detached(priority: .userInitiated) {

@@ -55,6 +55,6 @@ Reclaim is maintained by one person in their spare time. You can expect:
 
 - an acknowledgement within about 7 days;
 - an assessment and, for confirmed problems, a plan for a fix within about 30 days;
-- credit in the advisory and the changelog, if you want it.
+- credit in the advisory and the release notes, if you want it.
 
 Please give the maintainer a reasonable chance to fix the problem before you disclose it publicly. Once a fix is on `main`, the report is published as a GitHub security advisory.

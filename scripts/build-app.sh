@@ -15,6 +15,14 @@ mkdir -p "$APP/Contents/MacOS"
 cp "$BIN_DIR/ReclaimApp" "$APP/Contents/MacOS/Reclaim"
 cp Sources/ReclaimApp/Resources/Info.plist "$APP/Contents/Info.plist"
 
+# The version comes from the latest vX.Y.Z tag, the build number from the commit count. Without
+# git history (a source zip or a shallow clone) the placeholders in Info.plist stay.
+TAG="$(git describe --tags --abbrev=0 --match 'v[0-9]*' 2>/dev/null || true)"
+if [ -n "$TAG" ]; then
+    plutil -replace CFBundleShortVersionString -string "${TAG#v}" "$APP/Contents/Info.plist"
+    plutil -replace CFBundleVersion -string "$(git rev-list --count HEAD)" "$APP/Contents/Info.plist"
+fi
+
 IDENTITY="${SIGN_IDENTITY:-}"
 if [ -z "$IDENTITY" ]; then
     IDENTITY="$(security find-identity -p codesigning -v | sed -n 's/.*"\(Apple Development[^"]*\)".*/\1/p' | head -n 1)"
