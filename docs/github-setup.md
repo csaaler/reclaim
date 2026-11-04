@@ -14,7 +14,7 @@ A checklist for the maintainer. Apply it when the repository is created and chec
 
 ## General (Settings > General)
 
-- [ ] Description, website (none) and topics: `macos`, `swift`, `swiftui`, `disk-usage`, `cleanup`.
+- [x] Description, website (none) and topics: `macos`, `swift`, `swiftui`, `disk-usage`, `cleanup`.
 - [x] Features: **Wiki off**. Projects off unless used. Discussions off (support goes through issues). Issues on.
 - [x] Pull requests: allow **squash merging only**, with the pull request title as the default commit message. Turn off merge commits and rebase merging.
 - [x] "Always suggest updating pull request branches" on.
