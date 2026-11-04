@@ -120,7 +120,7 @@ Steps:
    - `note`: one line saying what is in the folder and what is lost if it is removed. It is shown in review.
 5. **Leave `mustQuitBeforeCleaning` at `true`** (the default) unless the app genuinely tolerates cleaning while it runs. The running-app check uses `bundleIDs` and `processNames`, so the validator requires at least one of them.
 6. **`sideEffectNote`** is optional text shown in the review step, for example "You will need to sign in again".
-7. **Register it.** Add `.exampleApp,` on its own line to `Sources/StorageDefinitions/AllDefinitions.swift`. Keep the list sorted by id; a test checks the order.
+7. **Register it.** Add `.exampleApp,` on its own line to `Sources/StorageDefinitions/AllDefinitions.swift`. Keep the list sorted by id; a test checks the order. Then add a row for the app to [supported-apps.md](supported-apps.md).
 8. **Test.** `swift test --filter StorageDefinitionsTests`. See [What the checks enforce](#what-the-checks-enforce) for what runs.
 
 **Electron apps** keep their Chromium caches in Application Support, where the location rules do not look. Use the helper in `Sources/StorageDefinitions/Electron.swift` (the template shows it too). It adds the standard cache folders (`Cache`, `Code Cache`, `GPUCache`, `DawnCache`, `Service Worker/CacheStorage`, ...) under `~/Library/Application Support/<supportFolder>/`:
@@ -210,7 +210,7 @@ An `InspectorContext` gives you `home`, `tools` (a `ToolRunning`), `sizer` (a `S
 1. Open an issue describing the app, what the inspector would find and why a definition is not enough.
 2. Copy `templates/InspectorTemplate.swift.txt` to `Sources/StorageInspectors/<AppName>/<AppName>Inspector.swift` and `templates/InspectorTestTemplate.swift.txt` to `Tests/StorageInspectorsTests/<AppName>InspectorTests.swift`. Replace the placeholders listed at the top of each file (`__AppName__`, `__app-id__`, `__DisplayName__`, `__BundleID__`, `__ProcessName__`, `__SupportFolder__`; same meanings as in Walkthrough A, with `__AppName__` the UpperCamelCase type and folder name, e.g. `ExampleApp`). As copied, the pair compiles and the tests pass.
 3. Write your tests first (see [Writing tests](#writing-tests)), then replace the template's discovery logic until they pass.
-4. Add `<AppName>Inspector(),` on its own line at the end of the list in `Sources/StorageInspectors/AllInspectors.swift`.
+4. Add `<AppName>Inspector(),` on its own line at the end of the list in `Sources/StorageInspectors/AllInspectors.swift`, and add a section for it to [supported-apps.md](supported-apps.md).
    Code that needs the app's settings (today only the project-builds search folders) should use `configuredInspectors(codeRoots:)`, which returns `allInspectors` with those settings applied, rather than `allInspectors` directly.
 5. Run `swift test --filter StorageInspectorsTests`. That runs your tests and `InspectorConformanceTests` against your inspector.
 
@@ -330,7 +330,7 @@ To see your plugin in the app, build it with `scripts/build-app.sh` and open `bu
 
 ## PR checklist
 
-- [ ] Definition: file in `Sources/StorageDefinitions/Apps/`, registered in `AllDefinitions.swift` (sorted by id). Inspector: file in `Sources/StorageInspectors/<AppName>/`, registered in `AllInspectors.swift`, with tests.
+- [ ] Definition: file in `Sources/StorageDefinitions/Apps/`, registered in `AllDefinitions.swift` (sorted by id). Inspector: file in `Sources/StorageInspectors/<AppName>/`, registered in `AllInspectors.swift`, with tests. Listed in `docs/supported-apps.md`.
 - [ ] `swift test` passes, including `DefinitionValidationTests` and `InspectorConformanceTests`.
 - [ ] Every location has an honest risk level and a one-line note about what is lost.
 - [ ] Bundle ids and process names are right, so the running-app check works.

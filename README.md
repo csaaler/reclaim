@@ -15,7 +15,7 @@ Swift 6, SwiftUI, SwiftPM, macOS 15 or later. No third-party packages. Version 0
 - **By Category.** The same data grouped by kind: caches, app data, developer tools, logs, app bundles, user files, system and other.
 - **Disk totals.** A footer under every view splits the used space into what the scan found and what it could not: the macOS system volume, purgeable space and local Time Machine snapshots, unreadable folders, and space it cannot explain.
 - **Dev Tools.** Purpose-built inspectors for Xcode and simulators, Docker, Android SDK and emulators, JetBrains IDEs, JavaScript package managers and Homebrew, Gradle, Maven, Python, Rust and Go caches, build folders in your project folders (`~/git`, `~/code`, `~/Developer`, `~/Projects`), and leftover updater downloads.
-- **Per-app knowledge.** Definitions for Slack, Microsoft Teams, Spotify, Steam, Telegram, WhatsApp, Notion, Linear, Postman, Cursor, VS Code and Claude, each with notes on what you lose if you remove a folder, and an inspector for Chrome profiles and caches.
+- **Per-app knowledge.** Definitions for Slack, Microsoft Teams, Spotify, Steam, Telegram, WhatsApp, Notion, Linear, Postman, Cursor, VS Code and Claude, each with notes on what you lose if you remove a folder, and an inspector for Chrome profiles and caches. The full list, with what can be cleaned and at which risk level, is in [docs/supported-apps.md](docs/supported-apps.md).
 - **Explorer.** A folder tree of the whole Data volume with allocated sizes.
 - **Large & Old Files.** Files of 100 MB or more and when they were last modified.
 - **Cleanup list and review.** Add items from any view, then review every path, size, risk level and exactly how it will be removed before anything happens.
@@ -84,6 +84,7 @@ Most apps need one small Swift file that lists their cache folders and what you 
 
 ## Documentation
 
+- [docs/supported-apps.md](docs/supported-apps.md): every app and tool Reclaim can clean, with risk levels.
 - [docs/faq.md](docs/faq.md): troubleshooting and common questions.
 - [docs/architecture.md](docs/architecture.md): targets, data flow and safety invariants.
 - [docs/adding-an-app.md](docs/adding-an-app.md): writing a definition or an inspector.
