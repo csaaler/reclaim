@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Xcode 16.4 is the macos-15 image default (Swift 6.1). Selected explicitly so an
+      # image update does not change the toolchain silently.
+      - name: Select Xcode
+        run: |
+          sudo xcode-select -s /Applications/Xcode_16.4.app
+          swift --version
+
+      - name: Build
+        run: swift build
+
+      # Includes DefinitionValidationTests, which validate every app definition.
+      - name: Test
+        run: swift test
+
+      # Reports compiler warnings without failing the job.
+      - name: Build with warnings as errors
+        continue-on-error: true
+        run: swift build -Xswiftc -warnings-as-errors
+
+      - name: Check contributor templates compile
+        run: scripts/check-templates.sh
+
+      - name: Check plugin rules
+        run: scripts/check-plugin-rules.sh
+
+      - name: Check for personal data and secrets
+        run: scripts/check-privacy.sh
+
+      # No signing identity exists on the runner, so the script signs ad-hoc.
+      - name: Assemble app bundle
+        run: scripts/build-app.sh release

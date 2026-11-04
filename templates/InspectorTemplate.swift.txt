@@ -1,0 +1,92 @@
+// Template for an inspector (level 2: reads app files or runs a tool).
+// Guide: docs/adding-an-app.md
+//
+// Placeholders (replace every one; each appears as written here):
+//   __AppName__       type and folder name, UpperCamelCase                e.g. ExampleApp
+//   __app-id__        inspector id, lowercase kebab-case, unique          e.g. example-app
+//   __DisplayName__   name shown in the app                               e.g. Example App
+//   __BundleID__      CFBundleIdentifier from the app's Info.plist        e.g. com.example.ExampleApp
+//   __ProcessName__   process name as shown in Activity Monitor           e.g. Example App
+//   __SupportFolder__ the app's folder in ~/Library/Application Support   e.g. Example App
+//
+// Steps:
+// 1. Copy this file to Sources/StorageInspectors/__AppName__/__AppName__Inspector.swift.
+// 2. Replace the placeholders, then replace the discovery logic with your own.
+// 3. Add `__AppName__Inspector(),` on its own line to Sources/StorageInspectors/AllInspectors.swift.
+// 4. Copy InspectorTestTemplate.swift.txt to Tests/StorageInspectorsTests/__AppName__InspectorTests.swift
+//    and make it pass. InspectorConformanceTests then checks your inspector automatically.
+//
+// Rules:
+// - discover is read-only. plan only returns steps; the CleanupEngine does the deleting.
+// - Use context.home, context.tools and context.sizer; never NSHomeDirectory(), Process or
+//   your own size walk.
+// - Fail safe: if you cannot determine something safety-relevant (default toolchain, active
+//   profile), do not offer the action.
+// - Partial failures and anything listed but never cleaned: return an item with
+//   `isActionable: false` (and a subtitle with the reason) instead of throwing. Throw
+//   InspectorUnavailable only when the whole inspector cannot run. Empty `paths` is fine for
+//   tool-based items and does not make an item informational.
+// - 🔴 (.userData) path steps use .trash. A runTool step is irreversible and needs acknowledgement;
+//   its executable comes from context.tools.locate("name").
+import Foundation
+import StorageCore
+
+public struct __AppName__Inspector: Inspector {
+    public let id = "__app-id__"
+    public let displayName = "__DisplayName__"
+    public let bundleIDs: [String] = ["__BundleID__"]
+    /// Locations this inspector owns (PathPattern syntax). The generic layer will not offer
+    /// them for raw deletion and will not double-count them.
+    public let claimedPatterns: [String] = [
+        "~/Library/Application Support/__SupportFolder__/Projects/*",
+    ]
+    // Optional: group the claimed paths under Developer Tools in By Category.
+    // public let category: StorageCategory? = .developerTools
+    // Optional: extra directories to search for this inspector's command-line tools.
+    // public let toolSearchDirectories = ["~/.example/bin"]
+
+    public init() {}
+
+    private static let requirement = AppStateRequirement.mustBeQuit(
+        bundleIDs: ["__BundleID__"], processNames: ["__ProcessName__"]
+    )
+
+    public func discover(in context: InspectorContext) async throws -> [InspectorItem] {
+        var items: [InspectorItem] = []
+        for path in await claimedPaths(in: context) {
+            let url = URL(fileURLWithPath: path)
+            let values = try? url.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
+            guard values?.isSymbolicLink != true, values?.isDirectory == true else { continue }
+            let name = url.lastPathComponent
+            items.append(InspectorItem(
+                id: "\(id).project.\(name)",   // stable within this inspector
+                inspectorID: id,
+                title: name,
+                subtitle: path,
+                whatYouLose: "Local project data; it cannot be re-downloaded",
+                allocatedBytes: await context.sizer.allocatedSize(of: path),
+                risk: .userData,
+                lastUsed: (try? FileManager.default.attributesOfItem(atPath: path))?[.modificationDate] as? Date,
+                paths: [path],
+                requirement: Self.requirement,
+                actionTitle: "Move project to Trash"
+            ))
+        }
+        return items
+    }
+
+    public func plan(for items: [InspectorItem], in context: InspectorContext) async throws -> CleanupPlan {
+        CleanupPlan(steps: items.filter(\.isActionable).flatMap { item in
+            item.paths.map { path in
+                CleanupStep(
+                    title: "Move \(item.title) to Trash",
+                    risk: item.risk,
+                    estimatedBytes: item.allocatedBytes,
+                    requirement: item.requirement,
+                    action: .trash(path: path, expectedFileID: nil),
+                    sideEffectNote: nil
+                )
+            }
+        })
+    }
+}

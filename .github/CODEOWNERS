@@ -1,0 +1,16 @@
+# Every change needs a review from the maintainer.
+*                                                     @csaaler
+
+# Safety-critical paths: deletion, path checks, system access, plugin code, CI and scripts.
+/Sources/StorageCore/Cleanup/                         @csaaler
+/Sources/StorageCore/Cleanup/ToolPolicy.swift         @csaaler
+/Sources/StorageCore/Safety/                          @csaaler
+/Sources/StorageCore/System/                          @csaaler
+/Sources/StorageCore/Paths/                           @csaaler
+/Sources/StorageCore/Attribution/LocationRules.swift  @csaaler
+/Sources/StorageCore/Snapshot/                        @csaaler
+/Package.swift                                        @csaaler
+/Sources/StorageInspectors/                           @csaaler
+/Sources/StorageDefinitions/DefinitionValidator.swift @csaaler
+/.github/                                             @csaaler
+/scripts/                                             @csaaler

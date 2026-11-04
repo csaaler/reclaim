@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security problem
+    url: https://github.com/csaaler/reclaim/security/advisories/new
+    about: Anything that could make Reclaim delete, move or edit data it should not. Report it privately, never in a public issue.
+  - name: Troubleshooting and FAQ
+    url: https://github.com/csaaler/reclaim/blob/main/docs/faq.md
+    about: Full Disk Access, unreadable folders, apps that must be quit, undoing a cleanup.

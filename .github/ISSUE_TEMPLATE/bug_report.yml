@@ -1,0 +1,57 @@
+name: Bug report
+description: Something does not work as expected. Not for security problems.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        If the bug could make Reclaim delete, move or edit data outside what you confirmed, **do not file it here**. Report it privately instead: see SECURITY.md.
+
+        Before you attach anything, remove personal data. Paths in screenshots and in the cleanup log can contain your user name and project or profile names. Replace them with `/Users/sample/...`.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open By App
+        2. Add ... to the cleanup list
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Commit
+      description: Output of `git rev-parse --short HEAD` in your checkout.
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      placeholder: "15.5"
+    validations:
+      required: true
+  - type: dropdown
+    id: fda
+    attributes:
+      label: Full Disk Access
+      options:
+        - Granted
+        - Not granted
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Cleanup log entries (redacted)
+      description: If a cleanup step is involved, the matching lines from `~/Library/Application Support/Reclaim/cleanup-log.jsonl`, with personal paths replaced.
+      render: json

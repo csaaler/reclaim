@@ -1,0 +1,54 @@
+name: App support request
+description: Ask for Reclaim to understand another app's files.
+labels: ["app support"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks. The more evidence you give, the faster this can be added. Anonymize all paths (`/Users/sample/...`) and do not paste file listings that show private file or profile names.
+
+        Want to add it yourself? See docs/adding-an-app.md and CONTRIBUTING.md.
+  - type: input
+    id: app
+    attributes:
+      label: App name and version
+      placeholder: Example App 3.2
+    validations:
+      required: true
+  - type: input
+    id: bundle-id
+    attributes:
+      label: Bundle id
+      description: "`osascript -e 'id of app \"Example App\"'` prints it."
+      placeholder: com.example.app
+    validations:
+      required: true
+  - type: input
+    id: process
+    attributes:
+      label: Process name
+      description: The name shown in Activity Monitor while the app runs.
+  - type: textarea
+    id: locations
+    attributes:
+      label: Where it stores data
+      description: One line per folder, with its approximate size (for example from `du -sh`) and what you think it holds.
+      placeholder: |
+        ~/Library/Application Support/Example App/Cache    1.2 GB   HTTP cache
+        ~/Library/Application Support/Example App/Profiles  300 MB   accounts and settings
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: How do you know what each folder holds and whether the app recreates it? Official documentation, the app's own "clear cache" option, a vendor support page, or what happened when you removed it on a test profile.
+    validations:
+      required: true
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Confirmation
+      options:
+        - label: I removed personal data from this request.
+          required: true

@@ -1,0 +1,64 @@
+// Template for an app definition (level 1: paths only, no logic).
+// Guide: docs/adding-an-app.md
+//
+// Placeholders (replace every one; each appears as written here):
+//   __appName__       Swift name of the definition, lowerCamelCase       e.g. exampleApp
+//   __app-id__        definition id, lowercase kebab-case, unique        e.g. example-app
+//   __DisplayName__   the app's name as users know it                    e.g. Example App
+//   __BundleID__      CFBundleIdentifier from the app's Info.plist       e.g. com.example.ExampleApp
+//   __ProcessName__   process name as shown in Activity Monitor          e.g. Example App
+//   __SupportFolder__ the app's folder in ~/Library/Application Support  e.g. Example App
+//
+// Steps:
+// 1. Copy this file to Sources/StorageDefinitions/Apps/<AppName>.swift (e.g. ExampleApp.swift).
+// 2. Replace the placeholders and the example locations below.
+// 3. Add `.__appName__,` on its own line to Sources/StorageDefinitions/AllDefinitions.swift,
+//    keeping the list sorted by id.
+// 4. Run `swift test --filter StorageDefinitionsTests`. DefinitionValidationTests checks every
+//    registered definition; its failure messages say what to fix.
+//
+// Patterns start with `~/Library/` or `~/.<folder>/`. `*` matches within one path segment; there is
+// no `**`, and the first three segments after `~/` must not contain `*`. A 🟢 or 🟡 pattern needs at
+// least three segments under ~/Library and two under a dot-folder. A whole app folder under
+// Application Support, Containers or Group Containers (`<App>` or `<App>/*`) can only be 🔴.
+// Kinds: .cache and .logs (🟢, deleted), .rebuildable (🟡, deleted),
+//        .userData and .config (🔴, moved to the Trash).
+// Every location needs a one-line note saying what is in it and what is lost if it is removed.
+import StorageCore
+
+extension AppDefinition {
+    static let __appName__ = AppDefinition(
+        id: "__app-id__",
+        displayName: "__DisplayName__",
+        bundleIDs: ["__BundleID__"],
+        processNames: ["__ProcessName__"],
+        locations: [
+            DefinedLocation(
+                pattern: "~/Library/Application Support/__SupportFolder__/MediaCache",
+                kind: .cache,
+                note: "Downloaded media cache; rebuilt automatically"
+            ),
+            DefinedLocation(
+                pattern: "~/Library/Application Support/__SupportFolder__/Offline",
+                kind: .rebuildable,
+                note: "Offline downloads; re-downloading takes time and bandwidth"
+            ),
+        ],
+        mustQuitBeforeCleaning: true,  // the default; set false only if the app tolerates it
+        sideEffectNote: nil            // optional text shown in the review step
+    )
+}
+
+// For an Electron app, use the helper instead. It adds the standard Chromium cache folders under
+// ~/Library/Application Support/__SupportFolder__/ (Cache, Code Cache, GPUCache, ...):
+//
+// extension AppDefinition {
+//     static let __appName__ = AppDefinition.electron(
+//         id: "__app-id__",
+//         displayName: "__DisplayName__",
+//         bundleIDs: ["__BundleID__"],
+//         processNames: ["__ProcessName__"],
+//         supportFolder: "__SupportFolder__",
+//         extraLocations: []
+//     )
+// }

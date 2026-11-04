@@ -1,0 +1,63 @@
+// Template for an inspector test.
+// Guide: docs/adding-an-app.md ("Writing tests")
+//
+// Placeholders: the same as in InspectorTemplate.swift.txt (__AppName__, __app-id__,
+// __SupportFolder__).
+//
+// Copy to Tests/StorageInspectorsTests/__AppName__InspectorTests.swift and run
+// `swift test --filter __AppName__InspectorTests`.
+//
+// Tests build a fake home with FixtureHome and never touch the real one. Use only made-up names
+// and content in fixtures: no real emails, profile names, paths or tokens.
+import Foundation
+import Testing
+import StorageCore
+import StorageInspectors
+import StorageTestKit
+
+@Suite struct __AppName__InspectorTests {
+    private func context(_ fixture: FixtureHome, tools: FakeToolRunner = FakeToolRunner()) -> InspectorContext {
+        InspectorContext(home: fixture.home, tools: tools, sizer: LogicalSizer())
+    }
+
+    @Test func discoversProjectAndPlansTrash() async throws {
+        let fixture = try FixtureHome()
+        try fixture.file("Library/Application Support/__SupportFolder__/Projects/demo/data.bin", bytes: 2048)
+        let inspector = __AppName__Inspector()
+        let ctx = context(fixture)
+
+        let items = try await inspector.discover(in: ctx)
+        let item = try #require(items.first)
+        let path = fixture.home.path + "/Library/Application Support/__SupportFolder__/Projects/demo"
+        #expect(item.id == "__app-id__.project.demo")
+        #expect(item.risk == .userData)
+        #expect(item.allocatedBytes == 2048)
+        #expect(item.paths == [path])
+
+        let plan = try await inspector.plan(for: items, in: ctx)
+        #expect(plan.steps.count == 1)
+        #expect(plan.steps[0].action == .trash(path: path, expectedFileID: nil))
+        #expect(plan.steps[0].requirement == item.requirement)
+    }
+
+    @Test func nothingFoundWhenAppIsNotInstalled() async throws {
+        let fixture = try FixtureHome()
+        #expect(try await __AppName__Inspector().discover(in: context(fixture)).isEmpty)
+    }
+
+    @Test func symlinkedProjectIsIgnored() async throws {
+        let fixture = try FixtureHome()
+        try fixture.dir("Elsewhere")
+        try fixture.symlink("Library/Application Support/__SupportFolder__/Projects/link", to: fixture.home.path + "/Elsewhere")
+        #expect(try await __AppName__Inspector().discover(in: context(fixture)).isEmpty)
+    }
+
+    // For an inspector that runs a tool, stub it and assert on the plan:
+    //
+    // let tools = FakeToolRunner(tools: ["example": "/usr/local/bin/example"])
+    // tools.stub("/usr/local/bin/example", ["list"], output: ToolOutput(exitCode: 0, stdout: "...", stderr: ""))
+    //
+    // And always add a fail-safe test: when the tool fails or its output cannot be parsed,
+    // the risky action must not be offered: assert `item.isActionable == false` (or that the
+    // item is absent) and that `plan` returns no steps for it.
+}
