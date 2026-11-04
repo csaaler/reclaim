@@ -1,12 +1,10 @@
 # Changelog
 
-All notable changes to this project are documented in this file.
+Release notes for versions after 0.1.0 are on [GitHub Releases](https://github.com/csaaler/reclaim/releases). This file is no longer updated; see [docs/release.md](docs/release.md).
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-
-## [0.1.0] - Unreleased
+## [0.1.0]
 
 Initial public release. Source only: build it with `scripts/build-app.sh`. There are no signed or notarized binaries.
 
@@ -21,5 +19,4 @@ Initial public release. Source only: build it with `scripts/build-app.sh`. There
 - Cleanup log at `~/Library/Application Support/Reclaim/cleanup-log.jsonl`.
 - A start screen: no scan on launch, Full Disk Access required, and an explicit Start Scan button.
 
-[Unreleased]: https://github.com/csaaler/reclaim/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/csaaler/reclaim/releases/tag/v0.1.0

@@ -87,7 +87,7 @@ Most apps need one small Swift file that lists their cache folders and what you 
 - [docs/faq.md](docs/faq.md): troubleshooting and common questions.
 - [docs/architecture.md](docs/architecture.md): targets, data flow and safety invariants.
 - [docs/adding-an-app.md](docs/adding-an-app.md): writing a definition or an inspector.
-- [CHANGELOG.md](CHANGELOG.md): release notes.
+- [Releases](https://github.com/csaaler/reclaim/releases): release notes. [CHANGELOG.md](CHANGELOG.md) covers 0.1.0.
 
 ## Trademarks
 
