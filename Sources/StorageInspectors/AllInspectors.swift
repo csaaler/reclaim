@@ -11,6 +11,7 @@ public let allInspectors: [any Inspector] = [
     NativeCachesInspector(),
     ProjectBuildsInspector(),
     UpdaterLeftoversInspector(),
+    AIModelsInspector(),
 ]
 
 /// `allInspectors` with user settings applied: `ProjectBuildsInspector` searches `codeRoots`

@@ -70,7 +70,7 @@ import StorageTestKit
         #expect(UpdaterLeftoversInspector().category == nil)
     }
 
-    @Test(arguments: ["docker", "xcode", "android", "jetbrains", "js-caches", "native-caches", "project-builds"])
+    @Test(arguments: ["docker", "xcode", "android", "jetbrains", "js-caches", "native-caches", "project-builds", "ai-models"])
     func developerToolInspectorsSayTheyAre(_ id: String) throws {
         let inspector = try #require(allInspectors.first { $0.id == id })
         #expect(inspector.category == .developerTools)

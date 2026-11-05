@@ -29,7 +29,7 @@ Native macOS app: Swift 6, SwiftUI, macOS 15 or later, no third-party packages, 
 
 - **By App and By Category.** Every folder, assigned to the app or tool that owns it, including leftovers of apps you already deleted.
 - **Explains "System Data".** A footer splits used space into what was found, the macOS system volume, purgeable space and local snapshots, unreadable folders and the rest.
-- **Dev Tools.** Xcode and simulators, Docker, Android, JetBrains, npm/pnpm/Yarn/Bun/Homebrew, Gradle, Maven, Python, Rust, Go, and build folders in your projects.
+- **Dev Tools.** Xcode and simulators, Docker, Android, JetBrains, npm/pnpm/Yarn/Bun/Homebrew, Gradle, Maven, Python, Rust, Go, local AI models (Ollama, LM Studio, Hugging Face), and build folders in your projects.
 - **Explorer and Large & Old Files.** The whole Data volume as a folder tree, plus every file of 100 MB or more.
 - **Review, then clean.** Collect items from any view, check every path, size and risk level, then confirm. Every step lands in History.
 
