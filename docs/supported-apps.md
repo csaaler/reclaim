@@ -103,6 +103,20 @@ The emulator must not be running.
 | Rust toolchains | Runs `rustup toolchain uninstall` | 🟡 |
 | Python versions installed with pyenv | Runs `pyenv uninstall -f` | 🟡 |
 
+### AI Models
+
+Downloaded local models, one item per model. All are 🟡: each can be downloaded again, which can take a long time for large models.
+
+| Item | How it is cleaned | Risk |
+|---|---|---|
+| Ollama model (`~/.ollama/models`) | Runs `ollama rm <model>`. Ollama must be running. Ollama removes only the layers no other model uses; Reclaim never deletes its blobs itself | 🟡 |
+| LM Studio model folder (`~/.lmstudio/models/<publisher>/<model>`) | Deleted. LM Studio must be quit. A model you imported yourself (`lms import`) is gone for good | 🟡 |
+| Hugging Face model or dataset (`~/.cache/huggingface/hub`) | Runs `hf cache rm <repo> --yes`. Without `hf`, the repo folder is deleted, but only when none of its files are in the cache's shared store (`hub/blobs`); otherwise the item is view-only | 🟡 |
+
+Ollama sizes come from each model's manifest and count shared layers for every model that uses them. Hugging Face sizes count the repo folder plus the shared-store files it links to, so removing one model can free less than shown when another model shares its files. Without the `ollama` command, Ollama models are view-only.
+
+Limitations: only the default locations are read. Models moved elsewhere with `OLLAMA_MODELS`, `HF_HOME` or `HF_HUB_CACHE`, or a models folder changed in LM Studio's settings, are not listed. Hugging Face Spaces in the cache are not listed. `hf` is found in Homebrew, `/usr/local/bin` and `~/.local/bin` (pipx, uv), not in a Python framework's `bin` folder.
+
 ### Project build folders
 
 Searches `~/git`, `~/code`, `~/Developer` and `~/Projects` (change them with `defaults write dev.csaaler.reclaim codeRoots -array "~/git" "~/work"`) for build output next to a matching project file. All items are 🟡.
