@@ -19,6 +19,8 @@ Docker's build cache, one Chrome profile. Surgical, not scorched-earth.
 
 **Why "Reclaim"?** `docker system df` has a column called *RECLAIMABLE*. We just made it actually happen.
 
+![Reclaim showing Google Chrome: 25 GB across two folders, with a stale profile, the on-device AI model and the browser cache ready to remove](docs/images/inspector-chrome.png)
+
 > [!WARNING]
 > Reclaim deletes files. You review every item first, your own data goes to the Trash,
 > and nothing runs without your OK. Still: have a backup. [How it stays safe](#safety-model)
@@ -34,6 +36,8 @@ Native macOS app: Swift 6, SwiftUI, macOS 15 or later, no third-party packages, 
 - **Review, then clean.** Collect items from any view, check every path, size and risk level, then confirm. Every step lands in History.
 
 Everything Reclaim knows how to clean, with risk levels, is in [docs/supported-apps.md](docs/supported-apps.md).
+
+![By Category view: developer tools take 115.5 GB, each folder labelled cache, rebuildable or your data](docs/images/by-category.png)
 
 ## Requirements
 

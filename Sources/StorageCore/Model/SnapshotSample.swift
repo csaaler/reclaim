@@ -329,7 +329,7 @@ private enum SampleData {
         )
         let apps = apps()
         let unaccounted = [
-            UnaccountedBucket(kind: .unreadable, title: "Unreadable (grant Full Disk Access): 1 folder", bytes: 0,
+            UnaccountedBucket(kind: .unreadable, title: "Unreadable: 1 folder", bytes: 0,
                               explanation: "1 folder could not be read, so its size is unknown and counted under “Not explained”. Grant Full Disk Access to include it."),
             UnaccountedBucket(kind: .systemVolume, title: "macOS system volume", bytes: volume.systemVolumeBytes,
                               explanation: "The read-only macOS system volume. It is managed by macOS and cannot be cleaned."),

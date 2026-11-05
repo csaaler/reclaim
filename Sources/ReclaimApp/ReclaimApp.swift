@@ -30,7 +30,16 @@ struct ReclaimApp: App {
                 fullDiskAccess: fullDiskAccess
             )
             .environment(\.inspectorDirectory, coordinator.inspectorDirectory)
-            .task { reloadHistory() }
+            .task {
+                #if DEBUG
+                // Made-up data for screenshots: no scan, no history from the cleanup log.
+                if Self.showsSampleData {
+                    coordinator.snapshot = .sample
+                    return
+                }
+                #endif
+                reloadHistory()
+            }
             // Candidates belong to the snapshot they were picked from.
             .onChange(of: coordinator.generation) { cleanupList.removeAll() }
             .onChange(of: review?.phase) { _, phase in
@@ -51,6 +60,11 @@ struct ReclaimApp: App {
         }
         .defaultSize(width: 1180, height: 720)
     }
+
+    #if DEBUG
+    /// Debug builds launched with `--sample-data` show `StorageSnapshot.sample` instead of the start screen.
+    private static let showsSampleData = CommandLine.arguments.contains("--sample-data")
+    #endif
 
     @discardableResult
     private func openReview() -> CleanupReviewModel? {

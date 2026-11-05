@@ -68,7 +68,7 @@ Run the same scripts locally before you push.
 2. `swift build` and `swift test` pass on CI, with no new compiler warnings. [CI]
 3. No new package dependencies, no SwiftPM plugins, no build tool plugins. `Package.swift` changes need a stated reason. [review]
 4. No network access, telemetry, analytics, crash reporting, auto-update or remote configuration anywhere. [CI for network APIs in plugin code via `check-plugin-rules.sh`; review for everything else]
-5. No real personal data in code, fixtures, tests, docs or screenshots: no real names, user names, email addresses, home paths, host names, profile names or tokens. Use `/Users/sample`, `com.example.*`, `example.test`, `Profile 3`. [CI via `check-privacy.sh`; review]
+5. No real personal data in code, fixtures, tests, docs or screenshots: no real names, user names, email addresses, home paths, host names, profile names or tokens. Use `/Users/sample`, `com.example.*`, `example.test`, `Profile 3`. [CI via `check-privacy.sh`; review] For screenshots, open a debug build with made-up data: `scripts/build-app.sh && open build/Reclaim.app --args --sample-data`.
 6. No binaries, app icons, logos or screenshots containing third-party trademarks. Refer to apps by name in text only. [review]
 7. Tests never touch your real home folder and never run destructive commands. They use only `StorageTestKit`: `FixtureHome` (a throwaway home folder), `FakeToolRunner`, `FakeAppChecker` and `LogicalSizer`. Do not run `docker prune`, `xcrun simctl delete`, `brew cleanup` or similar on your machine to check your work. [review]
 8. Changes to safety-critical paths need the maintainer's review, an explained design, and a test for each new branch of behaviour. [review, enforced by CODEOWNERS]
