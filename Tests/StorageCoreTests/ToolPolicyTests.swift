@@ -10,6 +10,7 @@ import StorageCore
         "pnpm": "/opt/homebrew/bin/pnpm", "brew": "/opt/homebrew/bin/brew", "yarn": "/opt/homebrew/bin/yarn",
         "bun": "/Users/sample/.bun/bin/bun", "pip3": "/usr/bin/pip3", "go": "/opt/homebrew/bin/go",
         "pyenv": "/opt/homebrew/bin/pyenv", "rustup": "/Users/sample/.cargo/bin/rustup",
+        "ollama": "/usr/local/bin/ollama", "hf": "/Users/sample/.local/bin/hf",
         "rm": "/bin/rm", "sh": "/bin/sh",
     ]
 
@@ -46,6 +47,15 @@ import StorageCore
         ("pyenv", ["uninstall", "-f", "pypy3.10-7.3.17"]),
         ("rustup", ["toolchain", "uninstall", "1.97.0-aarch64-apple-darwin"]),
         ("rustup", ["toolchain", "uninstall", "nightly-2026-01-01-aarch64-apple-darwin"]),
+        ("ollama", ["rm", "llama3.2:3b"]),
+        ("ollama", ["rm", "llama3.2"]),
+        ("ollama", ["rm", "library/qwen2.5:7b-instruct-q4_K_M"]),
+        ("ollama", ["rm", "example-user/tiny-model:latest"]),
+        ("ollama", ["rm", "hf.co/example-org/Example-Model-GGUF:Q4_K_M"]),
+        ("hf", ["cache", "rm", "model/example-org/example-model", "--yes"]),
+        ("hf", ["cache", "rm", "model/bert-base-cased", "--yes"]),
+        ("hf", ["cache", "rm", "dataset/example-org/Example_Data.v2", "--yes"]),
+        ("hf", ["cache", "rm", "dataset/glue", "--yes"]),
     ])
     func allowedCommandPasses(name: String, arguments: [String]) {
         #expect(check(tool(name, arguments)) == nil)
@@ -77,6 +87,39 @@ import StorageCore
             #expect(check(tool("pyenv", ["uninstall", "-f", value])) != nil, "\(value)")
             #expect(check(tool("rustup", ["toolchain", "uninstall", value])) != nil, "\(value)")
         }
+    }
+
+    /// `ollama rm` takes one model name. It must never read as an option, a path or more than
+    /// one argument.
+    @Test(arguments: [
+        "", "-f", "--help", "/llama3.2", "llama3.2/", "library//llama3.2", "../llama3.2",
+        "library/../llama3.2", "./llama3.2", ".hidden", "llama 3.2", "llama3.2\n", "llama3.2\t",
+        "llama3.2\0", "llama3.2;rm", "llama3.2|x", "llama3.2&", "$(x)", "`x`", "llama*", "a\\b",
+        ":latest", "library/:latest", "lläma", String(repeating: "a", count: 256),
+    ])
+    func ollamaModelNameIsRestricted(_ value: String) {
+        #expect(check(tool("ollama", ["rm", value])) != nil)
+    }
+
+    /// `hf cache rm` takes a typed repo id; revision hashes, `hf://` URIs and options are refused.
+    @Test(arguments: [
+        "", "-y", "--yes", "model", "model/", "model//x", "/model/x", "model/x/", "model/a/b/c",
+        "space/example-org/demo", "models/example-org/x", "Model/x", "model/../x", "model/./x",
+        "model/.hidden", "model/-x", "model/a b", "model/x\n", "model/x\0", "model/x;y", "model/x:y",
+        "hf://models/example-org/x/file.gguf", "8f3ad1c", "model/" + String(repeating: "a", count: 256),
+    ])
+    func huggingFaceRepoIDIsRestricted(_ value: String) {
+        #expect(check(tool("hf", ["cache", "rm", value, "--yes"])) != nil)
+    }
+
+    @Test func huggingFaceRemovalAlwaysSkipsThePromptAndNothingElse() {
+        #expect(check(tool("hf", ["cache", "rm", "model/x"])) != nil)
+        #expect(check(tool("hf", ["cache", "rm", "model/x", "-y"])) != nil)
+        #expect(check(tool("hf", ["cache", "rm", "model/x", "--yes", "--cache-dir", "/Users/sample"])) != nil)
+        #expect(check(tool("hf", ["cache", "rm", "model/x", "model/y", "--yes"])) != nil)
+        #expect(check(tool("hf", ["cache", "prune", "--yes"])) != nil)
+        #expect(check(tool("ollama", ["rm", "llama3.2", "qwen2.5"])) != nil)
+        #expect(check(tool("ollama", ["pull", "llama3.2"])) != nil)
     }
 
     @Test func executableMustBeWhereTheToolRunnerFindsIt() {
@@ -158,6 +201,7 @@ import StorageCore
     @Test func policyTablesAreReadable() {
         #expect(Set(ToolPolicy.tools.keys) == [
             "docker", "xcrun", "npm", "pnpm", "brew", "yarn", "bun", "pip3", "go", "pyenv", "rustup",
+            "ollama", "hf",
         ])
         #expect(ToolPolicy.jsonFiles.map(\.path) == ["~/Library/Application Support/Google/Chrome/Local State"])
     }
