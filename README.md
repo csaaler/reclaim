@@ -1,25 +1,39 @@
 # Reclaim
 
-Reclaim is a native macOS app that shows where your disk space went and cleans it up precisely. Think of it as a more detailed replacement for the Storage page in System Settings.
+**Disk full again? It's not you. It's `node_modules`.**
 
-System Settings lumps a lot of space into "System Data" and offers few ways to act on it. Reclaim scans your disk, assigns each folder to the app or tool that owns it, and explains the rest: the macOS system volume, purgeable space and local Time Machine snapshots, and folders it could not read. Cleanup is targeted. You can remove one Chrome profile, prune only Docker's build cache, or delete one stale simulator runtime, without wiping everything an app owns.
+System Settings shows 180 GB of *System Data* and shrugs. You've priced an external SSD.
+You've opened the MacBook configurator. You've typed `rm -rf ~/Library/Developer` and
+chickened out at the last second.
 
-Swift 6, SwiftUI, SwiftPM, macOS 15 or later. No third-party packages. Version 0.1, early: review every cleanup.
+Don't. Reclaim scans your drive and shows you who's actually squatting there:
+
+- 🦕 iOS simulators for versions you stopped supporting two jobs ago
+- 📦 `node_modules` from 47 side projects that were "almost done"
+- 🐳 Docker images from that one client in 2023
+- 🤖 Android system images you downloaded for a single bug
+- 👻 Caches of apps you already uninstalled
+
+Pick what goes, review it, and get your gigabytes back. One stale simulator, just
+Docker's build cache, one Chrome profile. Surgical, not scorched-earth.
+
+**Why "Reclaim"?** `docker system df` has a column called *RECLAIMABLE*. We just made it actually happen.
 
 > [!WARNING]
-> **Reclaim deletes files.** It is provided as-is, without warranty of any kind (see [LICENSE](LICENSE)). It deletes caches permanently, moves your data to the Trash, and can run tools such as `docker image prune`. Every item carries a risk level (🟢 rebuildable cache, 🟡 costly to rebuild, 🔴 your data or config), and nothing is removed until you have reviewed and confirmed it. 🔴 files and folders always go to the Trash, so you can put them back. 🔴 tool steps (for example Docker volume prune or deleting a simulator) cannot be undone, and need the same explicit acknowledgement. Still, read the review screen carefully, keep backups (for example Time Machine) and use it at your own risk. Builds are ad-hoc signed or signed with your own development certificate, are not notarized, and the code has not been audited by a third party.
+> Reclaim deletes files. You review every item first, your own data goes to the Trash,
+> and nothing runs without your OK. Still: have a backup. [How it stays safe](#safety-model)
+
+Native macOS app: Swift 6, SwiftUI, macOS 15 or later, no third-party packages, no telemetry. Version 0.1, so it's early: read the review screen.
 
 ## Features
 
-- **By App.** Disk usage per app: caches, logs, containers, app support data and leftovers of apps that are no longer installed.
-- **By Category.** The same data grouped by kind: caches, app data, developer tools, logs, app bundles, user files, system and other.
-- **Disk totals.** A footer under every view splits the used space into what the scan found and what it could not: the macOS system volume, purgeable space and local Time Machine snapshots, unreadable folders, and space it cannot explain.
-- **Dev Tools.** Purpose-built inspectors for Xcode and simulators, Docker, Android SDK and emulators, JetBrains IDEs, JavaScript package managers and Homebrew, Gradle, Maven, Python, Rust and Go caches, build folders in your project folders (`~/git`, `~/code`, `~/Developer`, `~/Projects`), and leftover updater downloads.
-- **Per-app knowledge.** Definitions for Slack, Microsoft Teams, Spotify, Steam, Telegram, WhatsApp, Notion, Linear, Postman, Cursor, VS Code and Claude, each with notes on what you lose if you remove a folder, and an inspector for Chrome profiles and caches. The full list, with what can be cleaned and at which risk level, is in [docs/supported-apps.md](docs/supported-apps.md).
-- **Explorer.** A folder tree of the whole Data volume with allocated sizes.
-- **Large & Old Files.** Files of 100 MB or more and when they were last modified.
-- **Cleanup list and review.** Add items from any view, then review every path, size, risk level and exactly how it will be removed before anything happens.
-- **History.** Every cleanup step, including skipped and failed ones, is logged and shown in the app.
+- **By App and By Category.** Every folder, assigned to the app or tool that owns it, including leftovers of apps you already deleted.
+- **Explains "System Data".** A footer splits used space into what was found, the macOS system volume, purgeable space and local snapshots, unreadable folders and the rest.
+- **Dev Tools.** Xcode and simulators, Docker, Android, JetBrains, npm/pnpm/Yarn/Bun/Homebrew, Gradle, Maven, Python, Rust, Go, and build folders in your projects.
+- **Explorer and Large & Old Files.** The whole Data volume as a folder tree, plus every file of 100 MB or more.
+- **Review, then clean.** Collect items from any view, check every path, size and risk level, then confirm. Every step lands in History.
+
+Everything Reclaim knows how to clean, with risk levels, is in [docs/supported-apps.md](docs/supported-apps.md).
 
 ## Requirements
 
@@ -63,6 +77,9 @@ The only data it writes, besides your preferences, is the cleanup log at `~/Libr
 ## Safety model
 
 Cleanup is designed so that a mistake costs as little as possible.
+
+> [!WARNING]
+> **Reclaim deletes files.** It is provided as-is, without warranty of any kind (see [LICENSE](LICENSE)). It deletes caches permanently, moves your data to the Trash, and can run tools such as `docker image prune`. Every item carries a risk level (🟢 rebuildable cache, 🟡 costly to rebuild, 🔴 your data or config), and nothing is removed until you have reviewed and confirmed it. 🔴 files and folders always go to the Trash, so you can put them back. 🔴 tool steps (for example Docker volume prune or deleting a simulator) cannot be undone, and need the same explicit acknowledgement. Still, read the review screen carefully, keep backups (for example Time Machine) and use it at your own risk. Builds are ad-hoc signed or signed with your own development certificate, are not notarized, and the code has not been audited by a third party.
 
 - **Risk levels, shown everywhere.**
   🟢 Rebuildable cache: worst case is a slower first launch or a re-download.
