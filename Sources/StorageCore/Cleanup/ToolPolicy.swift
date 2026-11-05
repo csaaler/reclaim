@@ -29,6 +29,15 @@ public struct ToolPolicy: Sendable {
         /// One path component, such as a Chrome profile folder name (`Profile 11`): not empty,
         /// not `.` or `..`, no `/` and no NUL.
         case pathComponent
+        /// An Ollama model name such as `llama3.2:3b`, `library/qwen2.5:7b-instruct-q4_K_M` or
+        /// `hf.co/org/model:Q4_K_M`: 1 to 255 ASCII letters, digits, `.`, `_`, `-`, `:` and `/`.
+        /// `/` only separates segments (no leading or trailing `/`, no `//`), and every segment
+        /// starts with a letter or digit, so it is never an option, `.`, `..` or an absolute path.
+        case ollamaModel
+        /// A Hugging Face cache repo id as `hf cache rm` takes it: `model/<org>/<name>`,
+        /// `dataset/<org>/<name>`, `model/<name>` or `dataset/<name>`. `<org>` and `<name>` follow
+        /// the rules of `name`. Never a revision hash or an `hf://` file URI.
+        case huggingFaceRepo
 
         public init(stringLiteral value: String) { self = .literal(value) }
 
@@ -38,6 +47,8 @@ public struct ToolPolicy: Sendable {
             case .uuid: UUID(uuidString: value) != nil && value.count == 36
             case .name: Self.isName(value)
             case .pathComponent: !value.isEmpty && value != "." && value != ".." && !value.contains("/") && !value.contains("\0")
+            case .ollamaModel: Self.isOllamaModel(value)
+            case .huggingFaceRepo: Self.isHuggingFaceRepo(value)
             }
         }
 
@@ -49,6 +60,22 @@ public struct ToolPolicy: Sendable {
             let scalars = value.unicodeScalars
             guard let first = scalars.first, scalars.count <= 255, letterOrDigit.contains(first) else { return false }
             return scalars.allSatisfy { nameCharacters.contains($0) }
+        }
+
+        private static let ollamaCharacters = nameCharacters.union(CharacterSet(charactersIn: ":/"))
+
+        private static func isOllamaModel(_ value: String) -> Bool {
+            let scalars = value.unicodeScalars
+            guard !scalars.isEmpty, scalars.count <= 255, scalars.allSatisfy({ ollamaCharacters.contains($0) }) else { return false }
+            return value.split(separator: "/", omittingEmptySubsequences: false).allSatisfy { segment in
+                segment.unicodeScalars.first.map { letterOrDigit.contains($0) } ?? false
+            }
+        }
+
+        private static func isHuggingFaceRepo(_ value: String) -> Bool {
+            let segments = value.split(separator: "/", omittingEmptySubsequences: false).map(String.init)
+            guard (2...3).contains(segments.count), ["model", "dataset"].contains(segments[0]) else { return false }
+            return segments.dropFirst().allSatisfy(isName)
         }
     }
 
@@ -104,6 +131,9 @@ public struct ToolPolicy: Sendable {
         "go": [["clean", "-modcache"], ["clean", "-cache"]],
         "pyenv": [["uninstall", "-f", .name]],
         "rustup": [["toolchain", "uninstall", .name]],
+        // AIModelsInspector: one downloaded model each.
+        "ollama": [["rm", .ollamaModel]],
+        "hf": [["cache", "rm", .huggingFaceRepo, "--yes"]],
     ]
 
     /// The JSON files that may be edited.
